@@ -38,5 +38,22 @@ data.loc[(data['d_fed_prim'].isin(['SW','GU'])) & (data['ratio_impacted_gu_sw_ov
 data.loc[(data['d_fed_prim'].isin(['SW','GU'])) & (data['ratio_impacted_gu_sw_over_all']==1) & (data['total_intakes']==data['total_gu_sw_intakes']) &  (data['disadvantage_status_type']=='Severely Disadvantaged'),'wotus2020_dwv_index']=7
 data.loc[(data['d_fed_prim'].isin(['SW','GU'])) & (data['ratio_impacted_gu_sw_over_all']==1) & (data['total_intakes']==data['total_gu_sw_intakes']) &  (data['disadvantage_status_type'].isnull()),'wotus2020_dwv_index']=6
 
-# The index for SWP take their seller's index
+# For Systems that Purchase water, merge the DWV index of their seller's index
+wotus_index_prov=data[['number0','wotus2020_dwv_index']].copy()
+wotus_index_prov.rename(columns={'wotus2020_dwv_index':'seller_wotus2020_dwv_index_1', 'number0':'seller_number0_1'}, inplace=True)
+data=pd.merge(data, wotus_index_prov, on='seller_number0_1', how='left')
+wotus_index_prov.rename(columns={'seller_wotus2020_dwv_index_1':'seller_wotus2020_dwv_index_2', 'seller_number0_1':'seller_number0_2'}, inplace=True)
+data=pd.merge(data, wotus_index_prov, on='seller_number0_2', how='left')
+
+# Update the index of SWP systems to the the minimum index of its sellers
+swp_prov=data[data['d_fed_prim']=='SWP'].copy()
+swp_prov[['seller_wotus2020_dwv_index_1','seller_wotus2020_dwv_index_2']].min(axis=1)
+data.loc[data['d_fed_prim']=='SWP','wotus2020_dwv_index']=swp_prov[['seller_wotus2020_dwv_index_1','seller_wotus2020_dwv_index_2']].min(axis=1)
+data[['seller_wotus2020_dwv_index_1','seller_wotus2020_dwv_index_2']].min(axis=1)
+
+# Create the index summary impact type
+data.loc[data['wotus2020_dwv_index']==1,'index_summary']='No Direct Impact'
+data.loc[(data['d_pws_fed_']!='C') & (data['wotus2020_dwv_index']>1),'index_summary']='Direct Impact Non-Community Water System'
+data.loc[(data['d_pws_fed_']=='C') & (data['wotus2020_dwv_index']>1) & (data['wotus2020_dwv_index']<5),'index_summary']='Direct Impact with Alternative Sources of Water'
+data.loc[(data['d_pws_fed_']=='C') & (data['wotus2020_dwv_index']>=5) & (data['wotus2020_dwv_index']<=10),'index_summary']='Direct Impact with No Alternative Sources of Water'
 
