@@ -57,3 +57,5 @@ data.loc[(data['d_pws_fed_']!='C') & (data['wotus2020_dwv_index']>1),'index_summ
 data.loc[(data['d_pws_fed_']=='C') & (data['wotus2020_dwv_index']>1) & (data['wotus2020_dwv_index']<5),'index_summary']='Direct Impact with Alternative Sources of Water'
 data.loc[(data['d_pws_fed_']=='C') & (data['wotus2020_dwv_index']>=5) & (data['wotus2020_dwv_index']<=10),'index_summary']='Direct Impact with No Alternative Sources of Water'
 
+# Exoport the index and data to a CSV
+data.to_csv(r'data/wotus2020-DWV-Index_all_pws.csv', index = False)
